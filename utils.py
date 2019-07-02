@@ -74,9 +74,12 @@ def summary(main_prog):
         print summary on terminal
     '''
     collected_ops_list = []
+    is_quantize = False
     for one_b in main_prog.blocks:
         block_vars = one_b.vars
         for one_op in one_b.ops:
+            if str(one_op.type).find('quantize') > -1:
+                is_quantize = True
             op_info = OrderedDict()
             spf_res = _summary_model(block_vars, one_op)
             if spf_res is None:
@@ -89,9 +92,10 @@ def summary(main_prog):
             op_info['FLOPs'] = spf_res[3]
             collected_ops_list.append(op_info)
 
+
     summary_table, total = _format_summary(collected_ops_list)
     _print_summary(summary_table, total)
-    return total
+    return total, is_quantize
 
 
 def _summary_model(block_vars, one_op):
@@ -121,6 +125,10 @@ def _summary_model(block_vars, one_op):
         # base nvidia paper, include mul and add
         flops = 2 * flops
 
+        # var_name = block_vars[one_op.input("Filter")[0]].name
+        # if var_name.endswith('.int8'):
+        #     flops /= 2.0
+
     elif one_op.type == 'pool2d':
         in_data_shape = block_vars[one_op.input("X")[0]].shape
         out_data_shape = block_vars[one_op.output("Out")[0]].shape
@@ -142,6 +150,10 @@ def _summary_model(block_vars, one_op):
         # bias in sum op
         params = k_in * k_out + 1
         flops = k_in * k_out
+
+        # var_name = block_vars[one_op.input("Y")[0]].name
+        # if var_name.endswith('.int8'):
+        #     flops /= 2.0
 
     elif one_op.type in ['sigmoid', 'tanh', 'relu', 'leaky_relu', 'prelu']:
         in_data_shape = block_vars[one_op.input("X")[0]].shape
