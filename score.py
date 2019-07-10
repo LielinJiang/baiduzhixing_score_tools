@@ -1,6 +1,8 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["FLAGS_fraction_of_gpu_memory_to_use"] = "0.3"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+# os.environ["FLAGS_fraction_of_gpu_memory_to_use"] = "0.3"
+import sys
+sys.path.insert(0, ".")
 import argparse
 import functools
 
@@ -104,7 +106,6 @@ def compute_score(model_dir, data_dir, test_list='annotations/instances_val2017.
     exe = fluid.Executor(place)
     exe.run(fluid.default_startup_program())
 
-    # 从模型中获取预测程序、输入数据名称列表、分类器
     [infer_program, feeded_var_names, target_var] = fluid.io.load_inference_model(dirname=model_dir, executor=exe)
 
     image_shape = [3, height, width]
