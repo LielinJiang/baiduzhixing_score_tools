@@ -138,25 +138,25 @@ def compute_score(model_dir, data_dir, test_list='annotations/instances_val2017.
     mAP = use_coco_api_compute_mAP(data_args, test_list, num_classes, test_reader, exe, infer_program,
                              feeded_var_names, feeder, target_var, batch_size)
     total_flops_params, is_quantize = summary(infer_program)
-    flops = np.sum(total_flops_params['flops']) / 2000000.0
+    MAdds = np.sum(total_flops_params['flops']) / 2000000.0
 
     if is_quantize:
-        flops /= 2.0
+        MAdds /= 2.0
 
     print('mAP:', mAP)
-    print('flops:', flops)
+    print('MAdds:', MAdds)
 
-    if flops < 160.0:
-        flops = 160.0
+    if MAdds < 160.0:
+        MAdds = 160.0
 
-    if flops > 1300.0:
+    if MAdds > 1300.0:
         score = 0.0
     else:
-        score = mAP * 100 - (5.1249 * np.log(flops) - 14.499)
+        score = mAP * 100 - (5.1249 * np.log(MAdds) - 14.499)
 
     print('score:', score)
 
-    return score, mAP, flops
+    return score, mAP, MAdds
 
 
 if __name__ == '__main__':
